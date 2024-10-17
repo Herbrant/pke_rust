@@ -106,7 +106,11 @@ impl PublicEnc<RSASecretKey, RSAPublicKey> for RSA {
         Ok((sk, pk))
     }
 
-    fn encrypt(pk: &RSAPublicKey, plaintext: &[u8]) -> Result<Vec<u8>, &'static str> {
+    fn encrypt(
+        pk: &RSAPublicKey,
+        plaintext: &[u8],
+        _rng: &mut rug::rand::RandState,
+    ) -> Result<Vec<u8>, &'static str> {
         let m = Integer::from_digits(plaintext, Order::MsfBe);
         log::debug!("Encrypting the message: {}", m);
 
@@ -130,7 +134,11 @@ impl PublicEnc<RSASecretKey, RSAPublicKey> for RSA {
         Ok(c)
     }
 
-    fn decrypt(sk: &RSASecretKey, ciphertext: &[u8]) -> Result<Vec<u8>, &'static str> {
+    fn decrypt(
+        _pk: &RSAPublicKey,
+        sk: &RSASecretKey,
+        ciphertext: &[u8],
+    ) -> Result<Vec<u8>, &'static str> {
         let c = Integer::from_digits(ciphertext, Order::MsfBe);
         log::debug!("Decrypting the ciphertext: {}", c);
 
@@ -175,7 +183,7 @@ mod test {
         let (_, pk) = RSA::keygen(128, &mut rng).unwrap();
 
         let m: Vec<u8> = pk.n.to_digits(Order::MsfBe);
-        assert!(RSA::encrypt(&pk, &m).is_err());
+        assert!(RSA::encrypt(&pk, &m, &mut rng).is_err());
     }
 
     #[test]
@@ -189,10 +197,10 @@ mod test {
 
         for s in input {
             let m = s.as_bytes();
-            let c = RSA::encrypt(&pk, m).unwrap();
+            let c = RSA::encrypt(&pk, m, &mut rng).unwrap();
 
-            let decrypted_message = RSA::decrypt(&sk, &c[..]).unwrap();
-            assert_eq!(m, &decrypted_message[..]);
+            let decrypted_message = RSA::decrypt(&pk, &sk, &c).unwrap();
+            assert_eq!(m, &decrypted_message);
         }
     }
 }

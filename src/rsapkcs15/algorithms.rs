@@ -1,5 +1,3 @@
-use rug::rand::RandState;
-
 use crate::{
     rsa::{
         algorithms::RSA,
@@ -49,8 +47,29 @@ impl RSAPKCS15 {
         Ok(padded_plaintext)
     }
 
-    fn pkcs_decode(mod_bytes: usize, padded_plaintext: &[u8]) -> Result<Vec<u8>, &'static str> {
-        todo!()
+    fn pkcs_decode(mod_bytes: usize, plaintext: &[u8]) -> Result<Vec<u8>, &'static str> {
+        let plaintext_size = plaintext.len();
+
+        if plaintext_size < mod_bytes {
+            return Err("The plaintext size is less than mod_bytes.");
+        }
+
+        if plaintext[0] != 2 {
+            return Err("Malformed PKCS1.5 encoding: init bytes");
+        }
+
+        let padding_ends = plaintext[1..plaintext_size - 2]
+            .iter()
+            .position(|&x| x == 0)
+            .ok_or("Malformed PKCS1.5 encoding: padding_ends")?;
+
+        if (padding_ends - 1) < 8 {
+            return Err("Malformed PKCS1.5 encoding: padding size is less than 8 bytes.");
+        }
+
+        let out = plaintext[padding_ends + 2..].to_vec();
+
+        Ok(out)
     }
 }
 
@@ -82,5 +101,48 @@ impl PublicEnc<RSASecretKey, RSAPublicKey> for RSAPKCS15 {
         let plaintext = RSAPKCS15::pkcs_decode(pk.n.significant_digits::<u8>(), &padded_plaintext)?;
 
         Ok(plaintext)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use rug::{integer::Order, rand::RandState};
+
+    use crate::{
+        rsapkcs15::algorithms::RSAPKCS15, traits::public_enc::PublicEnc,
+        utils::rand::rug_randseed_os_rng,
+    };
+
+    #[test]
+    fn rsa_pkcs15_encrypt_failes_for_message_out_of_range() {
+        let mut rng = RandState::new();
+
+        match rug_randseed_os_rng(128, &mut rng) {
+            Ok(()) => (),
+            Err(e) => panic!("{}", e),
+        };
+
+        let (_, pk) = RSAPKCS15::keygen(128, &mut rng).unwrap();
+
+        let m: Vec<u8> = pk.n.to_digits(Order::MsfBe);
+        assert!(RSAPKCS15::encrypt(&pk, &m, &mut rng).is_err());
+    }
+
+    #[test]
+    fn rsa_pkcs15_encrypt_works_as_expected() {
+        let mut rng = RandState::new();
+
+        rug_randseed_os_rng(128, &mut rng).unwrap();
+
+        let (sk, pk) = RSAPKCS15::keygen(128, &mut rng).unwrap();
+        let input = ["test1", "test2", "test3"];
+
+        for s in input {
+            let m = s.as_bytes();
+            let c = RSAPKCS15::encrypt(&pk, m, &mut rng).unwrap();
+
+            let decrypted_message = RSAPKCS15::decrypt(&pk, &sk, &c).unwrap();
+            assert_eq!(m, &decrypted_message);
+        }
     }
 }

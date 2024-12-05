@@ -71,7 +71,7 @@ impl PublicEnc<PaillierSecretKey, PaillierPublicKey> for Paillier {
         let lambda = (&p - Integer::ONE).complete() * (&q - Integer::ONE).complete();
 
         // Compute mu = lambda^{-1}
-        let mut mu = Integer::new();
+        let mu;
 
         match lambda.invert_ref(&n) {
             Some(x) => mu = x.complete(),

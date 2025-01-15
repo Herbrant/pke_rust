@@ -1,4 +1,4 @@
-mod rsa {
+mod pallier {
     use divan::black_box;
     use divan::Bencher;
     use pke_rust::paillier::algorithms::Paillier;

@@ -1,4 +1,4 @@
-mod rsa {
+mod el_gamal {
     use divan::black_box;
     use divan::Bencher;
     use pke_rust::el_gamal::algorithms::ElGamal;

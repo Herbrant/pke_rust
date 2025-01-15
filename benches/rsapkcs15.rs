@@ -1,4 +1,4 @@
-mod rsa {
+mod rsapkcs15 {
     use divan::black_box;
     use divan::Bencher;
     use pke_rust::rsapkcs15::algorithms::RSAPKCS15;

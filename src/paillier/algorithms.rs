@@ -24,7 +24,10 @@ impl Paillier {
     }
 }
 
-impl PublicEnc<PaillierSecretKey, PaillierPublicKey> for Paillier {
+impl PublicEnc for Paillier {
+    type SecretKey = PaillierSecretKey;
+    type PublicKey = PaillierPublicKey;
+
     fn keygen(
         sec_level: u64,
         rng: &mut rug::rand::RandState,

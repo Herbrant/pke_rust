@@ -73,7 +73,10 @@ impl RSAPKCS15 {
     }
 }
 
-impl PublicEnc<RSASecretKey, RSAPublicKey> for RSAPKCS15 {
+impl PublicEnc for RSAPKCS15 {
+    type SecretKey = RSASecretKey;
+    type PublicKey = RSAPublicKey;
+
     fn keygen(
         sec_level: u64,
         rng: &mut rug::rand::RandState,

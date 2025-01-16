@@ -27,7 +27,10 @@ impl RSA {
     }
 }
 
-impl PublicEnc<RSASecretKey, RSAPublicKey> for RSA {
+impl PublicEnc for RSA {
+    type SecretKey = RSASecretKey;
+    type PublicKey = RSAPublicKey;
+
     fn keygen(
         sec_level: u64,
         rng: &mut rug::rand::RandState,

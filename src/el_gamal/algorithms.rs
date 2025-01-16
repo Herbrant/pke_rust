@@ -24,7 +24,10 @@ impl ElGamal {
     }
 }
 
-impl PublicEnc<ElGamalSecretKey, ElGamalPublicKey> for ElGamal {
+impl PublicEnc for ElGamal {
+    type SecretKey = ElGamalSecretKey;
+    type PublicKey = ElGamalPublicKey;
+
     fn keygen(
         sec_level: u64,
         rng: &mut rug::rand::RandState,

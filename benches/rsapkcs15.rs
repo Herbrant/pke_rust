@@ -16,25 +16,25 @@ fn rsa_pkcs15_keygen() {
 #[divan::bench(args=VALUES)]
 fn rsa_pkcs15_encrypt(bencher: Bencher, m: u64) {
     let mut rng = RandState::new();
-    let (_, pk) = RSAPKCS15::keygen(black_box(SECURY_LEVEL), black_box(&mut rng)).unwrap();
+    let (_, pk) = RSAPKCS15::keygen(SECURY_LEVEL, &mut rng).unwrap();
 
     let m = m.to_le_bytes();
 
     bencher.bench_local(|| {
-        let _ = RSAPKCS15::encrypt(&pk, &m, &mut rng).unwrap();
+        let _ = RSAPKCS15::encrypt(black_box(&pk), black_box(&m), black_box(&mut rng)).unwrap();
     });
 }
 
 #[divan::bench(args=VALUES)]
 fn rsa_pkcs15_decrypt(bencher: Bencher, m: u64) {
     let mut rng = RandState::new();
-    let (sk, pk) = RSAPKCS15::keygen(black_box(SECURY_LEVEL), black_box(&mut rng)).unwrap();
+    let (sk, pk) = RSAPKCS15::keygen(SECURY_LEVEL, &mut rng).unwrap();
 
     let m: [u8; 8] = m.to_le_bytes();
     let c = RSAPKCS15::encrypt(&pk, &m, &mut rng).unwrap();
 
     bencher.bench_local(|| {
-        let _ = RSAPKCS15::decrypt(&pk, &sk, &c).unwrap();
+        let _ = RSAPKCS15::decrypt(black_box(&pk), black_box(&sk), black_box(&c)).unwrap();
     });
 }
 

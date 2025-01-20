@@ -16,25 +16,25 @@ fn el_gamal_keygen() {
 #[divan::bench(args=VALUES)]
 fn el_gamal_encrypt(bencher: Bencher, m: u64) {
     let mut rng = RandState::new();
-    let (_, pk) = ElGamal::keygen(black_box(SECURY_LEVEL), black_box(&mut rng)).unwrap();
+    let (_, pk) = ElGamal::keygen(SECURY_LEVEL, &mut rng).unwrap();
 
     let m = m.to_le_bytes();
 
     bencher.bench_local(|| {
-        let _ = ElGamal::encrypt(&pk, &m, &mut rng).unwrap();
+        let _ = ElGamal::encrypt(black_box(&pk), black_box(&m), black_box(&mut rng)).unwrap();
     });
 }
 
 #[divan::bench(args=VALUES)]
 fn el_gamal_decrypt(bencher: Bencher, m: u64) {
     let mut rng = RandState::new();
-    let (sk, pk) = ElGamal::keygen(black_box(SECURY_LEVEL), black_box(&mut rng)).unwrap();
+    let (sk, pk) = ElGamal::keygen(SECURY_LEVEL, &mut rng).unwrap();
 
     let m: [u8; 8] = m.to_le_bytes();
     let c = ElGamal::encrypt(&pk, &m, &mut rng).unwrap();
 
     bencher.bench_local(|| {
-        let _ = ElGamal::decrypt(&pk, &sk, &c).unwrap();
+        let _ = ElGamal::decrypt(black_box(&pk), black_box(&sk), black_box(&c)).unwrap();
     });
 }
 

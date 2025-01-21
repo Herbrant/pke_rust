@@ -120,10 +120,7 @@ mod test {
     fn rsa_pkcs15_encrypt_failes_for_message_out_of_range() {
         let mut rng = RandState::new();
 
-        match rug_randseed_os_rng(128, &mut rng) {
-            Ok(()) => (),
-            Err(e) => panic!("{}", e),
-        };
+        rug_randseed_os_rng(128, &mut rng).unwrap();
 
         let (_, pk) = RSAPKCS15::keygen(128, &mut rng).unwrap();
 

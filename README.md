@@ -7,6 +7,9 @@ Collection of public key encryption schemes written in Rust for the University o
 - [RSA](./src/rsa/)
 - [RSA + PKCS#1 v1.5](./src/rsapkcs15/)
 
+## Digital Signatures
+- [DSA](./src/dsa/)
+
 ## Libraries
 - [rug](https://gitlab.com/tspiteri/rug)
 - [divan](https://github.com/nvzqz/divan)

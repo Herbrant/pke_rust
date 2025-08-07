@@ -1,1 +1,17 @@
 /target
+*.pdb
+.vscode/
+.idea/
+*~
+*.swp
+*.tmp
+
+# Docker files
+.dockerignore
+docker-compose.yml
+DOCKER.md
+Dockerfile
+Dockerfile.production
+
+# DSA documentation
+src/dsa/README.md

@@ -13,12 +13,12 @@ impl RSAPKCS15 {
         mod_bytes: usize,
         plaintext: &[u8],
         rng: &mut rug::rand::RandState,
-    ) -> Result<Vec<u8>, &'static str> {
+    ) -> Result<Vec<u8>, String> {
         let plaintext_size = plaintext.len();
         let padded_plaintext_size = plaintext_size + 3 + 8;
 
         if padded_plaintext_size > mod_bytes {
-            return Err("The plaintext is too long.");
+            return Err("The plaintext is too long.".to_string());
         }
 
         let padding_bytes = mod_bytes - plaintext_size;
@@ -80,7 +80,7 @@ impl PublicEnc for RSAPKCS15 {
     fn keygen(
         sec_level: u64,
         rng: &mut rug::rand::RandState,
-    ) -> Result<(RSASecretKey, RSAPublicKey), &'static str> {
+    ) -> Result<(RSASecretKey, RSAPublicKey), String> {
         RSA::keygen(sec_level, rng)
     }
 
@@ -88,18 +88,14 @@ impl PublicEnc for RSAPKCS15 {
         pk: &RSAPublicKey,
         plaintext: &[u8],
         rng: &mut rug::rand::RandState,
-    ) -> Result<Vec<u8>, &'static str> {
+    ) -> Result<Vec<u8>, String> {
         let padded_plaintext =
             RSAPKCS15::pkcs_encode(pk.n.significant_digits::<u8>(), plaintext, rng)?;
 
         RSA::encrypt(pk, &padded_plaintext, rng)
     }
 
-    fn decrypt(
-        pk: &RSAPublicKey,
-        sk: &RSASecretKey,
-        ciphertext: &[u8],
-    ) -> Result<Vec<u8>, &'static str> {
+    fn decrypt(pk: &RSAPublicKey, sk: &RSASecretKey, ciphertext: &[u8]) -> Result<Vec<u8>, String> {
         let padded_plaintext = RSA::decrypt(pk, sk, ciphertext)?;
         let plaintext = RSAPKCS15::pkcs_decode(pk.n.significant_digits::<u8>(), &padded_plaintext)?;
 

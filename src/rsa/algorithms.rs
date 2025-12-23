@@ -13,14 +13,14 @@ pub struct RSA;
 const DEFAULT_E: u64 = 65537;
 
 impl RSA {
-    fn get_mod_bits(sec_level: u64) -> Result<u64, &'static str> {
+    fn get_mod_bits(sec_level: u64) -> Result<u64, String> {
         let mod_bits = match sec_level {
             80 => 1024,
             112 => 2048,
             128 => 3072,
             192 => 7680,
             256 => 15360,
-            _ => return Err("Invalid security level."),
+            _ => return Err("Invalid security level.".to_string()),
         };
 
         Ok(mod_bits)
@@ -34,7 +34,7 @@ impl PublicEnc for RSA {
     fn keygen(
         sec_level: u64,
         rng: &mut rug::rand::RandState,
-    ) -> Result<(RSASecretKey, RSAPublicKey), &'static str> {
+    ) -> Result<(RSASecretKey, RSAPublicKey), String> {
         log::debug!("Generating a new key pair...");
 
         let mod_bits = RSA::get_mod_bits(sec_level)?;
@@ -82,7 +82,7 @@ impl PublicEnc for RSA {
         // Generates the private exponent
         let d: Integer = match e.invert_ref(&phi_n) {
             Some(el) => el.into(),
-            None => return Err("error while inverting the public exponent"),
+            None => return Err("error while inverting the public exponent".to_string()),
         };
 
         let n = (&p * &q).complete();
@@ -98,7 +98,7 @@ impl PublicEnc for RSA {
         // q_inv = q^-1 mod p
         let q_inv = match q.invert_ref(&p) {
             Some(val) => val.into(),
-            None => return Err("Error while computing q_inv value."),
+            None => return Err("Error while computing q_inv value.".to_string()),
         };
 
         let pk = RSAPublicKey::new(n, e);
@@ -113,12 +113,12 @@ impl PublicEnc for RSA {
         pk: &RSAPublicKey,
         plaintext: &[u8],
         _rng: &mut rug::rand::RandState,
-    ) -> Result<Vec<u8>, &'static str> {
+    ) -> Result<Vec<u8>, String> {
         let m = Integer::from_digits(plaintext, Order::MsfBe);
         log::debug!("Encrypting the message: {}", m);
 
         if &m >= &pk.n || &m <= Integer::ONE {
-            return Err("The message is out of range.");
+            return Err("The message is out of range.".to_string());
         }
 
         // The function pow_mod is not designed for cryptographic purposes
@@ -141,20 +141,20 @@ impl PublicEnc for RSA {
         _pk: &RSAPublicKey,
         sk: &RSASecretKey,
         ciphertext: &[u8],
-    ) -> Result<Vec<u8>, &'static str> {
+    ) -> Result<Vec<u8>, String> {
         let c = Integer::from_digits(ciphertext, Order::MsfBe);
         log::debug!("Decrypting the ciphertext: {}", c);
 
         // m_p = (c mod p)^(d_p) mod p
         let m_p = match c.modulo_ref(&sk.p).complete().pow_mod(&sk.d_p, &sk.p) {
             Ok(val) => val,
-            Err(_) => return Err("Error while computing m_p"),
+            Err(_) => return Err("Error while computing m_p".to_string()),
         };
 
         // m_q = (c mod q)^(d_q) mod q
         let m_q = match c.modulo_ref(&sk.q).complete().pow_mod(&sk.d_q, &sk.q) {
             Ok(val) => val,
-            Err(_) => return Err("Error while computing m_q"),
+            Err(_) => return Err("Error while computing m_q".to_string()),
         };
 
         // m = m_q + ( (m_p - m_q) * (q_inv) mod p ) * q

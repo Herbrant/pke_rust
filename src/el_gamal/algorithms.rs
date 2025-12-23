@@ -31,7 +31,7 @@ impl PublicEnc for ElGamal {
     fn keygen(
         sec_level: u64,
         rng: &mut rug::rand::RandState,
-    ) -> Result<(ElGamalSecretKey, ElGamalPublicKey), &'static str> {
+    ) -> Result<(ElGamalSecretKey, ElGamalPublicKey), String> {
         let p_bits = Self::get_mod_bits(sec_level)?;
         let q_bits = p_bits >> 1;
 
@@ -82,14 +82,14 @@ impl PublicEnc for ElGamal {
         pk: &ElGamalPublicKey,
         plaintext: &[u8],
         rng: &mut rug::rand::RandState,
-    ) -> Result<Vec<u8>, &'static str> {
+    ) -> Result<Vec<u8>, String> {
         let m = Integer::from_digits(plaintext, Order::MsfBe);
         log::debug!("Encrypting the message: {}", m);
 
         let p_minus_one = (&pk.p - Integer::ONE).complete();
 
         if m > p_minus_one {
-            return Err("The message is out of message space.");
+            return Err("The message is out of message space.".to_string());
         }
 
         // Generate a random k in [2,p-2]
@@ -120,7 +120,7 @@ impl PublicEnc for ElGamal {
         pk: &ElGamalPublicKey,
         sk: &ElGamalSecretKey,
         ciphertext: &[u8],
-    ) -> Result<Vec<u8>, &'static str> {
+    ) -> Result<Vec<u8>, String> {
         // TO-FIX: unwrap
         let (c1, c2): (Vec<u8>, Vec<u8>) = bincode::deserialize(ciphertext).unwrap();
         let c1 = Integer::from_digits(&c1, Order::MsfBe);

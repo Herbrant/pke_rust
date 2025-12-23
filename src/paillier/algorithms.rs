@@ -31,7 +31,7 @@ impl PublicEnc for Paillier {
     fn keygen(
         sec_level: u64,
         rng: &mut rug::rand::RandState,
-    ) -> Result<(PaillierSecretKey, PaillierPublicKey), &'static str> {
+    ) -> Result<(PaillierSecretKey, PaillierPublicKey), String> {
         // Generate two primes p,q s.t. gcd(pq, (p-1)(q-1)) = 1
         // Note that if, |p| = |q| this property is assured, for more information
         // see Jonathan Katz, Yehuda Lindell, "Introduction to Modern Cryptography: Principles and Protocols
@@ -78,7 +78,7 @@ impl PublicEnc for Paillier {
 
         match lambda.invert_ref(&n) {
             Some(x) => mu = x.complete(),
-            None => return Err("Error while computing mu."),
+            None => return Err("Error while computing mu.".to_string()),
         };
 
         let pk = PaillierPublicKey::new(n, n_square, g);
@@ -91,11 +91,11 @@ impl PublicEnc for Paillier {
         pk: &PaillierPublicKey,
         plaintext: &[u8],
         rng: &mut rug::rand::RandState,
-    ) -> Result<Vec<u8>, &'static str> {
+    ) -> Result<Vec<u8>, String> {
         let m = Integer::from_digits(plaintext, Order::MsfBe);
 
         if m.is_negative() || m >= pk.n {
-            return Err("The message is not in the message space.");
+            return Err("The message is not in the message space.".to_string());
         }
 
         // Select a random 0 < r < n s.t. gcd(r,n) = 1
@@ -122,11 +122,11 @@ impl PublicEnc for Paillier {
         pk: &PaillierPublicKey,
         sk: &PaillierSecretKey,
         ciphertext: &[u8],
-    ) -> Result<Vec<u8>, &'static str> {
+    ) -> Result<Vec<u8>, String> {
         let c = Integer::from_digits(ciphertext, Order::MsfBe);
 
         if c.is_zero() || &c > &pk.n_square {
-            return Err("The ciphertext is out of range.");
+            return Err("The ciphertext is out of range.".to_string());
         }
 
         let mut m = c.secure_pow_mod(&sk.lambda, &pk.n_square) * &sk.mu;

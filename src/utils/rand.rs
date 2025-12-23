@@ -2,11 +2,11 @@ use rand_core::{OsRng, RngCore};
 use rug::integer::Order::MsfBe;
 use rug::{rand::RandState, Integer};
 
-pub fn get_randseed_os_rng(seed_bits: usize) -> Result<Integer, &'static str> {
+pub fn get_randseed_os_rng(seed_bits: usize) -> Result<Integer, String> {
     let seed_bytes: usize = seed_bits / 8;
 
     if seed_bytes < 1 {
-        return Err("seed_bytes < 1");
+        return Err("seed_bytes < 1".to_string());
     }
 
     let mut seed: Vec<u8> = vec![0; seed_bytes];
@@ -16,7 +16,7 @@ pub fn get_randseed_os_rng(seed_bits: usize) -> Result<Integer, &'static str> {
     Ok(seed)
 }
 
-pub fn rug_randseed_os_rng(seed_bits: usize, rng: &mut RandState) -> Result<(), &'static str> {
+pub fn rug_randseed_os_rng(seed_bits: usize, rng: &mut RandState) -> Result<(), String> {
     let seed = get_randseed_os_rng(seed_bits)?;
     rng.seed(&seed);
 

@@ -34,7 +34,7 @@ impl PublicEnc for RSA {
     fn keygen(
         sec_level: u64,
         rng: &mut rug::rand::RandState,
-    ) -> Result<(RSASecretKey, RSAPublicKey), String> {
+    ) -> Result<(Self::SecretKey, Self::PublicKey), String> {
         log::debug!("Generating a new key pair...");
 
         let mod_bits = RSA::get_mod_bits(sec_level)?;
@@ -81,7 +81,7 @@ impl PublicEnc for RSA {
 
         // Generates the private exponent
         let d: Integer = match e.invert_ref(&phi_n) {
-            Some(el) => el.into(),
+            Some(el) => el.complete(),
             None => return Err("error while inverting the public exponent".to_string()),
         };
 
@@ -97,12 +97,12 @@ impl PublicEnc for RSA {
 
         // q_inv = q^-1 mod p
         let q_inv = match q.invert_ref(&p) {
-            Some(val) => val.into(),
+            Some(val) => val.complete(),
             None => return Err("Error while computing q_inv value.".to_string()),
         };
 
-        let pk = RSAPublicKey::new(n, e);
-        let sk = RSASecretKey::new(p, q, d_p, d_q, q_inv);
+        let pk = Self::PublicKey::new(n, e);
+        let sk = Self::SecretKey::new(p, q, d_p, d_q, q_inv);
 
         log::debug!("{:?}", sk);
 
@@ -110,7 +110,7 @@ impl PublicEnc for RSA {
     }
 
     fn encrypt(
-        pk: &RSAPublicKey,
+        pk: &Self::PublicKey,
         plaintext: &[u8],
         _rng: &mut rug::rand::RandState,
     ) -> Result<Vec<u8>, String> {
@@ -138,8 +138,8 @@ impl PublicEnc for RSA {
     }
 
     fn decrypt(
-        _pk: &RSAPublicKey,
-        sk: &RSASecretKey,
+        _pk: &Self::PublicKey,
+        sk: &Self::SecretKey,
         ciphertext: &[u8],
     ) -> Result<Vec<u8>, String> {
         let c = Integer::from_digits(ciphertext, Order::MsfBe);

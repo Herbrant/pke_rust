@@ -1,5 +1,6 @@
 use rug::{
     integer::{IntegerExt64, IsPrime, Order},
+    rand::RandState,
     Assign, Complete, Integer,
 };
 
@@ -30,8 +31,8 @@ impl PublicEnc for ElGamal {
 
     fn keygen(
         sec_level: u64,
-        rng: &mut rug::rand::RandState,
-    ) -> Result<(ElGamalSecretKey, ElGamalPublicKey), String> {
+        rng: &mut RandState,
+    ) -> Result<(Self::SecretKey, Self::PublicKey), String> {
         let p_bits = Self::get_mod_bits(sec_level)?;
         let q_bits = p_bits >> 1;
 
@@ -72,16 +73,16 @@ impl PublicEnc for ElGamal {
         // Compute h
         let h = g.secure_pow_mod_ref(&x, &p).complete();
 
-        let sk = ElGamalSecretKey::new(x);
-        let pk = ElGamalPublicKey::new(p, q, g, h);
+        let sk = Self::SecretKey::new(x);
+        let pk = Self::PublicKey::new(p, q, g, h);
 
         Ok((sk, pk))
     }
 
     fn encrypt(
-        pk: &ElGamalPublicKey,
+        pk: &Self::PublicKey,
         plaintext: &[u8],
-        rng: &mut rug::rand::RandState,
+        rng: &mut RandState,
     ) -> Result<Vec<u8>, String> {
         let m = Integer::from_digits(plaintext, Order::MsfBe);
         log::debug!("Encrypting the message: {}", m);
@@ -117,8 +118,8 @@ impl PublicEnc for ElGamal {
     }
 
     fn decrypt(
-        pk: &ElGamalPublicKey,
-        sk: &ElGamalSecretKey,
+        pk: &Self::PublicKey,
+        sk: &Self::SecretKey,
         ciphertext: &[u8],
     ) -> Result<Vec<u8>, String> {
         // TO-FIX: unwrap

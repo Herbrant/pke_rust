@@ -14,7 +14,7 @@ pub trait PublicEnc {
     fn encrypt(
         pk: &Self::PublicKey,
         plaintext: &[u8],
-        rng: &mut rug::rand::RandState,
+        rng: &mut RandState,
     ) -> Result<Vec<u8>, String>;
 
     // decryption algorithm

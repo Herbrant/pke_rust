@@ -122,8 +122,11 @@ impl PublicEnc for ElGamal {
         sk: &Self::SecretKey,
         ciphertext: &[u8],
     ) -> Result<Vec<u8>, String> {
-        // TO-FIX: unwrap
-        let (c1, c2): (Vec<u8>, Vec<u8>) = bincode::deserialize(ciphertext).unwrap();
+        let (c1, c2): (Vec<u8>, Vec<u8>) = match bincode::deserialize(ciphertext) {
+            Ok(c) => c,
+            Err(_) => return Err("Deserialization error.".to_string()),
+        };
+
         let c1 = Integer::from_digits(&c1, Order::MsfBe);
         let c2 = Integer::from_digits(&c2, Order::MsfBe);
 

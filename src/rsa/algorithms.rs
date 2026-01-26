@@ -2,6 +2,7 @@ use std::cmp::Ordering;
 
 use rug::{
     integer::{IntegerExt64, IsPrime, Order},
+    rand::RandState,
     Assign, Complete, Integer,
 };
 
@@ -33,7 +34,7 @@ impl PublicEnc for RSA {
 
     fn keygen(
         sec_level: u64,
-        rng: &mut rug::rand::RandState,
+        rng: &mut RandState,
     ) -> Result<(Self::SecretKey, Self::PublicKey), String> {
         log::debug!("Generating a new key pair...");
 
@@ -112,7 +113,7 @@ impl PublicEnc for RSA {
     fn encrypt(
         pk: &Self::PublicKey,
         plaintext: &[u8],
-        _rng: &mut rug::rand::RandState,
+        _rng: &mut RandState,
     ) -> Result<Vec<u8>, String> {
         let m = Integer::from_digits(plaintext, Order::MsfBe);
         log::debug!("Encrypting the message: {}", m);
@@ -124,7 +125,7 @@ impl PublicEnc for RSA {
         // The function pow_mod is not designed for cryptographic purposes
         // let c: Integer = match m.pow_mod_ref(&pk.e, &pk.n) {
         //     Some(val) => val.into(),
-        //     None => return Err("Error while computing c."),
+        //     None => return Err("Error while computing c.".to_string()),
         // };
 
         // The function secure_pow_mod is designed to take the same time and use the same cache access

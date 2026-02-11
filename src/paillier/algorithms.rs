@@ -151,9 +151,9 @@ mod test {
     fn paillier_encrypt_failes_for_message_out_of_range() {
         let mut rng = RandState::new();
 
-        rug_randseed_os_rng(128, &mut rng).unwrap();
+        rug_randseed_os_rng(80, &mut rng).unwrap();
 
-        let (_, pk) = Paillier::keygen(128, &mut rng).unwrap();
+        let (_, pk) = Paillier::keygen(80, &mut rng).unwrap();
 
         let m: Vec<u8> = pk.n.to_digits(Order::MsfBe);
         assert!(Paillier::encrypt(&pk, &m, &mut rng).is_err());
@@ -163,9 +163,9 @@ mod test {
     fn paillier_encrypt_works_as_expected() {
         let mut rng = RandState::new();
 
-        rug_randseed_os_rng(128, &mut rng).unwrap();
+        rug_randseed_os_rng(80, &mut rng).unwrap();
 
-        let (sk, pk) = Paillier::keygen(128, &mut rng).unwrap();
+        let (sk, pk) = Paillier::keygen(80, &mut rng).unwrap();
         let input = ["t1", "t1", "t1"];
 
         for s in input {

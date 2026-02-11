@@ -179,9 +179,9 @@ mod test {
     fn rsa_encrypt_failes_for_message_out_of_range() {
         let mut rng = RandState::new();
 
-        rug_randseed_os_rng(128, &mut rng).unwrap();
+        rug_randseed_os_rng(80, &mut rng).unwrap();
 
-        let (_, pk) = RSA::keygen(128, &mut rng).unwrap();
+        let (_, pk) = RSA::keygen(80, &mut rng).unwrap();
 
         let m: Vec<u8> = pk.n.to_digits(Order::MsfBe);
         assert!(RSA::encrypt(&pk, &m, &mut rng).is_err());
@@ -191,9 +191,9 @@ mod test {
     fn rsa_encrypt_works_as_expected() {
         let mut rng = RandState::new();
 
-        rug_randseed_os_rng(128, &mut rng).unwrap();
+        rug_randseed_os_rng(80, &mut rng).unwrap();
 
-        let (sk, pk) = RSA::keygen(128, &mut rng).unwrap();
+        let (sk, pk) = RSA::keygen(80, &mut rng).unwrap();
         let input = ["test1", "test2", "test3"];
 
         for s in input {

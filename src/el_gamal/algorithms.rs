@@ -46,8 +46,6 @@ impl PublicEnc for ElGamal {
 
             if q.significant_bits_64() == q_bits && q.is_probably_prime(12) != IsPrime::No {
                 p.assign(Integer::from(2) * &q + Integer::ONE);
-                println!("p: {}", p);
-                println!("bits: {}", p.significant_bits_64());
 
                 if p.significant_bits_64() == p_bits && p.is_probably_prime(12) != IsPrime::No {
                     break;

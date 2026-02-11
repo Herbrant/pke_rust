@@ -34,24 +34,24 @@ impl PublicEnc for ElGamal {
         rng: &mut RandState,
     ) -> Result<(Self::SecretKey, Self::PublicKey), String> {
         let p_bits = Self::get_mod_bits(sec_level)?;
-        let q_bits = p_bits >> 1;
+        let q_bits = p_bits - 1;
 
         let mut p = Integer::new();
         let mut q = Integer::new();
 
         loop {
-            q.assign(Integer::random_bits_64(p_bits, rng));
+            q.assign(Integer::random_bits_64(q_bits, rng));
+            q.set_bit((q_bits - 1) as u32, true);
+            q.set_bit(0, true);
 
-            if q.significant_bits_64() >= q_bits && q.is_probably_prime(12) == IsPrime::Probably {
-                break;
-            }
-        }
+            if q.significant_bits_64() == q_bits && q.is_probably_prime(12) != IsPrime::No {
+                p.assign(Integer::from(2) * &q + Integer::ONE);
+                println!("p: {}", p);
+                println!("bits: {}", p.significant_bits_64());
 
-        loop {
-            p = Integer::from(2) * &p + Integer::ONE;
-
-            if p.significant_bits_64() >= p_bits && p.is_probably_prime(12) == IsPrime::Probably {
-                break;
+                if p.significant_bits_64() == p_bits && p.is_probably_prime(12) != IsPrime::No {
+                    break;
+                }
             }
         }
 
@@ -85,8 +85,6 @@ impl PublicEnc for ElGamal {
         rng: &mut RandState,
     ) -> Result<Vec<u8>, String> {
         let m = Integer::from_digits(plaintext, Order::MsfBe);
-        log::debug!("Encrypting the message: {}", m);
-
         let p_minus_one = (&pk.p - Integer::ONE).complete();
 
         if m > p_minus_one {
@@ -108,7 +106,9 @@ impl PublicEnc for ElGamal {
         let c1 = pk.g.secure_pow_mod_ref(&k, &pk.p).complete();
 
         // Compute c2
-        let c2 = (pk.h.secure_pow_mod_ref(&k, &pk.p).complete()) * m;
+        let c2 = ((pk.h.secure_pow_mod_ref(&k, &pk.p).complete()) * m)
+            .modulo_ref(&pk.p)
+            .complete();
 
         let c1: Vec<u8> = c1.to_digits(Order::MsfBe);
         let c2: Vec<u8> = c2.to_digits(Order::MsfBe);
@@ -156,9 +156,9 @@ mod test {
     fn el_gamal_encrypt_failes_for_message_out_of_range() {
         let mut rng = RandState::new();
 
-        rug_randseed_os_rng(128, &mut rng).unwrap();
+        rug_randseed_os_rng(80, &mut rng).unwrap();
 
-        let (_, pk) = ElGamal::keygen(128, &mut rng).unwrap();
+        let (_, pk) = ElGamal::keygen(80, &mut rng).unwrap();
 
         let m: Vec<u8> = pk.p.to_digits(Order::MsfBe);
         assert!(ElGamal::encrypt(&pk, &m, &mut rng).is_err());
@@ -168,9 +168,9 @@ mod test {
     fn el_gamal_encrypt_works_as_expected() {
         let mut rng = RandState::new();
 
-        rug_randseed_os_rng(128, &mut rng).unwrap();
+        rug_randseed_os_rng(80, &mut rng).unwrap();
 
-        let (sk, pk) = ElGamal::keygen(128, &mut rng).unwrap();
+        let (sk, pk) = ElGamal::keygen(80, &mut rng).unwrap();
         let input = ["test1", "test2", "test3"];
 
         for s in input {

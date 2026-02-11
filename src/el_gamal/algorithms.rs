@@ -11,6 +11,8 @@ use super::keys::{ElGamalPublicKey, ElGamalSecretKey};
 pub struct ElGamal;
 
 impl ElGamal {
+    const SMALL_PRIMES: &[u32] = &[3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47];
+
     fn get_mod_bits(sec_level: u64) -> Result<u64, &'static str> {
         let mod_bits = match sec_level {
             80 => 1024,
@@ -44,10 +46,37 @@ impl PublicEnc for ElGamal {
             q.set_bit((q_bits - 1) as u32, true);
             q.set_bit(0, true);
 
-            if q.significant_bits_64() == q_bits && q.is_probably_prime(12) != IsPrime::No {
-                p.assign(Integer::from(2) * &q + Integer::ONE);
+            if q.mod_u(3) != 2 {
+                continue;
+            }
 
-                if p.significant_bits_64() == p_bits && p.is_probably_prime(12) != IsPrime::No {
+            let mut is_composite = false;
+            for &sp in Self::SMALL_PRIMES {
+                let rem_q = q.mod_u(sp);
+                if rem_q == 0 {
+                    is_composite = true;
+                    break;
+                }
+
+                if (2 * rem_q + 1) % sp == 0 {
+                    is_composite = true;
+                    break;
+                }
+            }
+            if is_composite {
+                continue;
+            }
+
+            if q.is_probably_prime(2) == IsPrime::No {
+                continue;
+            }
+
+            p.assign(&q);
+            p <<= 1;
+            p += 1;
+
+            if p.is_probably_prime(12) != IsPrime::No {
+                if q.is_probably_prime(12) != IsPrime::No {
                     break;
                 }
             }

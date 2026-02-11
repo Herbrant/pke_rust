@@ -3,7 +3,7 @@ use divan::Bencher;
 use pke_rust::{rsa::algorithms::RSA, traits::public_enc::PublicEnc};
 use rug::rand::RandState;
 
-const SECURY_LEVEL: u64 = 128;
+const SECURY_LEVEL: u64 = 80;
 const VALUES: &[u64] = &[1, 5, 10, 20, 30, 40];
 
 #[divan::bench]
